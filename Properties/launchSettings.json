@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Dicelator": {
+      "commandName": "Project",
+      "commandLineArgs": "--image c:\\temp\\chess.bmp --output c:\\temp\\chess.txt"
+    }
+  }
+}
