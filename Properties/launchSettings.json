@@ -2,7 +2,7 @@
   "profiles": {
     "Dicelator": {
       "commandName": "Project",
-      "commandLineArgs": "--image c:\\temp\\chess.bmp --output c:\\temp\\chess.txt"
+      "commandLineArgs": "--image chess.bmp --output c:\\temp\\chess.txt"
     }
   }
 }

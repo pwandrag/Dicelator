@@ -15,60 +15,61 @@ if (config["image"]==null || config["output"] == null)
     return;
 }
 
-var inputImage = config["image"];
-var outputFile = config["output"];
-
-var fileInfo = new FileInfo(inputImage);
+var fileInfo = new FileInfo(config["image"]);
 if (!fileInfo.Exists)
 {
     Console.WriteLine($"File {fileInfo.Name} not found");
+    return;
 }
-
-Console.WriteLine("Analyzing...");
-
-Bitmap b = (Bitmap)Image.FromFile(fileInfo.FullName);
 
 var buckets = new Dictionary<int, int>();
 var matrix = JsonSerializer.Deserialize<Dictionary<int, int>>(File.ReadAllText("matrix.json"));
-
-
 var sb = new StringBuilder();
 
-//iterate over each pixel in the bitmap
-for (int i = 0; i < b.Height; i++)
-{
-    for (int j = 0; j < b.Width; j++)
-    {
-        var pixel = b.GetPixel(j,i);
-        
-        var c = (int)Math.Round((0.299 * pixel.R) + (0.587 * pixel.G) + (0.114 * pixel.B),0);
+Console.Write("Loading File...");
 
-        var d = 1;
+using Bitmap sourceMap = (Bitmap)Image.FromFile(fileInfo.FullName);
+
+Console.WriteLine("Done");
+
+Console.Write("Analyzing...");
+
+//iterate over each pixel in the bitmap
+for (int i = 0; i < sourceMap.Height; i++)
+{
+    for (int j = 0; j < sourceMap.Width; j++)
+    {
+        var pixel = sourceMap.GetPixel(j,i);
+        
+        //calculate average brightness
+        var brightness = (int)Math.Round((0.299 * pixel.R) + (0.587 * pixel.G) + (0.114 * pixel.B),0);
+
+        var dice = 1;
+        //determine dice face based on brightness
         foreach (var item in matrix)
         {
-            //var d = 1;
-            if (c > item.Key)
+            if (brightness > item.Key)
             {
-                d= item.Value;
+                dice= item.Value;
                 break;
             }
         }
 
-        if (buckets.ContainsKey(d)) buckets[d]++;
-        else buckets.Add(d, 1);
-        sb.Append(d);
-
+        if (buckets.ContainsKey(dice)) buckets[dice]++;
+        else buckets.Add(dice, 1);
+        sb.Append(dice);
 
     }
     sb.AppendLine();
 }
+Console.WriteLine("Done");
 
-b.Dispose();
-Console.WriteLine("Matrix distribution count");
-foreach (var item in buckets)
+Console.WriteLine("You will need this many of each dice face:");
+foreach (var item in buckets.OrderBy(o=>o.Key))
 {
-    Console.WriteLine($"{item.Key} {item.Value}");
+    Console.WriteLine($"{item.Key}: {item.Value}");
 }
+Console.WriteLine($"Total: {sourceMap.Width*sourceMap.Height}");
 
-File.WriteAllText(outputFile, sb.ToString());
+File.WriteAllText(config["output"], sb.ToString());
 Console.WriteLine("Done");
